@@ -1,13 +1,20 @@
-
-
 class Intcode:
 
-  def __init__(self, code):
-    self.code = code
-    self.ep = 0
+  def __init__(self, code, verbose=False, halt_on_output=False):
+    self._code = code
+    self.verbose = verbose
+    self.halt_fg = False
+    self.halt_on_output = halt_on_output
 
-  def exec(self, input):
-    self.input = input
+  def exec(self, input_values=[]):
+    self.ep = 0
+    self.code = self._code.copy()
+    return self.resume(input_values)
+
+  def resume(self, input_values=[]):
+    self.halt_fg = False
+    self.input = input_values
+
     while self.code[self.ep] != 99:
       op, self.parm_cds = self._slice_op(str(self.code[self.ep]))
 
@@ -17,7 +24,10 @@ class Intcode:
       if instr["inc_ep"]:
         self.ep += instr["sz"]
 
-    print(self.code[0])
+      if self.halt_fg:
+        break
+
+    return self.output
 
   def _slice_op(self, code_str):
     code_str = code_str.zfill(5)
@@ -41,12 +51,17 @@ class Intcode:
     self.code[y] = a * b
 
   def _instr3(self, x):
-    self.code[x] = self.input
+    self.code[x] = self.input.pop(0)
 
   def _instr4(self, x):
     if self.parm_cds[0] == 0:
       x = self.code[x]
-    print(f"Output: {x}")
+
+    if self.verbose:
+      print(f"Output: {x}")
+
+    self.halt_fg = self.halt_on_output
+    self.output = x
 
   def _instr5(self, a, b):
     if self.parm_cds[0] == 0:
@@ -97,14 +112,3 @@ class Intcode:
       {"sz": 4, "f": _instr7, "inc_ep": True},
       {"sz": 4, "f": _instr8, "inc_ep": True},
   ]
-
-
-# fp = "day5/example.txt"
-# fp = "day5/sample9.txt"
-fp = "day5/input.txt
-with open(fp) as fd:
-  text = fd.read()
-  fd.close()
-
-computer = Intcode([int(c) for c in text.split(",")])
-computer.exec(5)
