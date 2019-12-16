@@ -32,9 +32,8 @@ def det_colour(img, x, y):
   return "~~"
 
 
-def part1(img):
-  # img_layers = get_layers(img, 3, 2)
-  img_layers = get_layers(img, 25, 6)
+def part1(img, width, height):
+  img_layers = get_layers(img, width, height)
 
   layers_zero_cnt = np.array([count_digits(img, 0) for img in img_layers])
 
@@ -47,10 +46,8 @@ def part2(img_raw, width, height):
   img = shape(img_raw, width, height)
 
   render = [
-      [
-          det_colour(img, x, y)
-          for x in range(0, width)
-      ] for y in range(0, height)
+      [det_colour(img, x, y) for x in range(0, width)]
+      for y in range(0, height)
   ]
 
   for row in render:
@@ -63,6 +60,5 @@ with open(fp) as fd:
   text = fd.read()
   img = [int(s) for s in text]
 
-# part1(img)
-# part2(img, 2, 2)
+# part1(img, 25, 6)
 part2(img, 25, 6)

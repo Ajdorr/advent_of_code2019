@@ -1,13 +1,3 @@
-import math
+ore_cnt = 1000000000000
 
-
-def lcm(a, b):
-  return abs(a * b) // math.gcd(a, b)
-
-
-x = 2028
-y = 5898
-z = 4702
-p = x * y * 7
-
-print(lcm(lcm(x, y), z))
+print(ore_cnt // 13312)
