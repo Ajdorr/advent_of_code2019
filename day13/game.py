@@ -1,7 +1,7 @@
 import numpy as np
 from cpu import Intcode
 _board_sz = 2898
-_id_to_tile = [".", "#", "X", "-", "O"]
+_id_to_tile = [" ", "#", "X", "=", "O"]
 
 
 class Game:
@@ -61,9 +61,9 @@ class Game:
     self.board[y][x] = arg
 
   def get_ball_loc(self):
-    for i, row in enumerate(self.board):
+    for j, row in enumerate(self.board):
       if 4 in row:
-        return i, row.index(4)
+        return row.index(4), j
 
     raise Exception("No ball found")
 

@@ -61,21 +61,20 @@ def part2():
   print(g)
 
   i = 1
-  c = 0
   while g.comp.halt_fg:
     g.update(i)
-    if c > 7200:
-      print(g)
-    c += 1
+    print(g)
 
-    x, y = g.get_ball_loc()
+    x, _ = g.get_ball_loc()
     p = g.get_paddle_loc()
-    if p < y:
+    if p < x:
       i = 1
-    elif p > y:
+    elif p > x:
       i = -1
     else:
       i = 0
+
+    # time.sleep(0.05)
 
 
 part2()
