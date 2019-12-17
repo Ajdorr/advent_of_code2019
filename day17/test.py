@@ -30,70 +30,41 @@ def turn_l():
   d = (d + 3) % 4
 
 
+def move_code(sym, code):
+  for c in code.split(","):
+    if c == "L":
+      turn_l()
+    elif c == "R":
+      turn_r()
+    else:
+      move_n(sym, int(c))
+
+
 def move_a():
-  turn_l()
-  move_n("A", 12)
-  turn_r()
-  move_n("A", 4)
-  turn_r()
-  move_n("A", 4)
-  turn_r()
-  move_n("A", 8)
-  turn_r()
-  move_n("A", 6)
-  turn_r()
-  move_n("A", 6)
-  turn_r()
-  move_n("A", 4)
-  turn_l()
+  move_code("A", "L,12,R,4,R,4")
 
 
 def move_b():
-  move_n("B", 12)
-  turn_l()
-  move_n("B", 12)
-  turn_r()
-  move_n("B", 4)
-  turn_l()
-  move_n("B", 12)
-  turn_l()
-  move_n("B", 12)
-  turn_r()
-  move_n("B", 4)
-  turn_l()
-  move_n("B", 4)
-  turn_r()
-  move_n("B", 2)
-  turn_l()
-  move_n("B", 8)
+  move_code("B", "R,12,R,4,L,12")
 
 
 def move_c():
-  turn_r()
-  move_n("C", 12)
-  turn_r()
-  move_n("C", 4)
-  turn_l()
-  move_n("C", 6)
-  turn_l()
-  move_n("C", 8)
-  turn_l()
-  move_n("C", 8)
-  turn_l()
-  move_n("C", 12)
-  turn_r()
-  move_n("C", 4)
-  turn_r()
-  move_n("C", 4)
+  move_code("C", "R,12,R,4,L,6,L,8,L,8")
 
 
 # Main
-# L,12,R,4,R,4,R,8,R,6,R,6,R,4,L,12,L,12,R,4,L,12,L,12,R,4,L,4,R,2,L,8,R,12,R,4,L,6,L,8,L,8,L,12,R,4,R,4,L,12,R,4,R,4,R,8,R,6,R,6,R,4,L,12,L,12,R,4,L,12,L,12,R,4,L,4,R,2,L,8,
 move_a()
 move_b()
+move_b()
+
+move_c()
 move_c()
 move_a()
+move_a()
+
 move_b()
+move_b()
+move_c()
 
 print("\n".join([
     "".join([c for c in line])

@@ -16,10 +16,11 @@ def part1():
 def part2():
   droid = Droid(code, 2)
   droid.program(
-      "A,B,C,A,B",
-      "L,12,R,4,R,4,R,8,R,6,R,6,R,4,L,2",
-      "10,L,12,R,4,L,12,L,12,R,4,L,4,R,2,L,8",
-      "R,12,R,4,L,6,L,8,L,8,L,12,R,4,R,4", False)
+      "A,B,B,C,C,A,A,B,B,C",
+      "L,12,R,4,R,4",
+      "R,12,R,4,L,12",
+      "R,12,R,4,L,6,L,8,L,8",
+      False)
 
 
 # part1()

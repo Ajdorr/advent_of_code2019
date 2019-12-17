@@ -35,15 +35,18 @@ class Droid:
 
     return "".join([chr(c) for c in ret[:-1]])
 
+  def _check_alignment(self, i, j):
+    return (
+        self.area_map[j - 1][i] == "#" and
+        self.area_map[j][i - 1] == "#" and
+        self.area_map[j][i + 1] == "#" and
+        self.area_map[j + 1][i] == "#")
+
   def get_alignment(self):
     ret = 0
     for j, row in enumerate(self.area_map[1:-1]):
       for i, v in enumerate(row[1:-1]):
-        if (v == "#"
-            and self.area_map[j][i + 1] == "#"
-            and self.area_map[j + 1][i] == "#"
-            and self.area_map[j + 1][i + 2] == "#"
-            and self.area_map[j + 2][i + 1] == "#"):
+        if v == "#" and self._check_alignment(j + 1, i + 1):
           ret += (i + 1) * (j + 1)
 
     return ret
@@ -68,8 +71,9 @@ class Droid:
         self.update_feed()
         print(self)
     else:
-      while self.cpu.halt_fg:
+      for _ in range(40):
         print(self.read_line())
+      print(self.cpu.resume())
 
   def __repr__(self):
     return "\n".join([

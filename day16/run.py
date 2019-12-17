@@ -17,7 +17,6 @@ def fft(in_arr):
       (abs(sum([
           v * bp[(((i + 1) // (j + 1))) % 4]
           for i, v in enumerate(in_arr)]))) % 10
-          # for i, v in enumerate(in_arr)])))
       for j in range(len(in_arr))]
 
 
