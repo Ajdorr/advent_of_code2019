@@ -1,5 +1,5 @@
 from area_map import Area_Map
-fp = "day18/in.txt"
+fp = "day18/ex5.txt"
 vault = Area_Map(open(fp).read())
 
 

@@ -30,7 +30,7 @@ class Area_Map:
         [c for c in line]
         for line in map_raw.splitlines()]
     self.start = self.get_pos(start_char)
-    self.best_steps = 6000
+    self.best_steps = 1e8
 
     ignore = [".", "#"]
     self.destinations = {start_char: self.start}
@@ -39,6 +39,28 @@ class Area_Map:
         if c not in ignore and c.islower():
           self.destinations[c] = (i, j)
     self[self.start] = "."
+
+    self.paths = {
+        src: {
+            dst: self.get_path_key_req(src, dst)
+            for dst in self.destinations.values() if src != dst}
+        for src in self.destinations.values()}
+
+    keys = list(filter(lambda k: k != "@", self.destinations.keys()))
+    keys.sort()
+    self.free_keys = [
+        key for key in keys
+        if len(self.paths[self.start][self.destinations[key]].keys_req) == 0]
+
+    self.closest_keys = {
+        self._closest_key(key): key
+        for key in keys if key not in self.free_keys}
+
+    self.unlocked_keys = {
+        key: [
+            k for k in keys
+            if k != key and key in self.paths[self.start][self.destinations[k]].keys_req]
+        for key in keys}
 
   def __getitem__(self, pos):
     return self.mp[pos[1]][pos[0]]
@@ -117,20 +139,19 @@ class Area_Map:
         [self[p] for p in path[:-1] if self[p] != "." and self[p].islower()])
 
   def find_routes(self):
-    paths = {
-        (src, dst): self.get_path_key_req(src, dst)
-        for dst in self.destinations.values()
-        for src in self.destinations.values() if src != dst}
-
     keys = list(filter(lambda k: k != "@", self.destinations.keys()))
     keys.sort()
     self.solutions = []
-    self._find_routes(self.start, paths, keys, 0)
+
+    self._find_routes_locked(
+        self.start, self.free_keys,
+        [key for key in keys if key not in self.free_keys], 0)
+    # self._find_routes(self.start, keys, 0)
 
     routes = []
     for soln in self.solutions:
         route = [
-            paths[(self.destinations[src], self.destinations[dst])]
+            self.paths[self.destinations[src]][self.destinations[dst]]
             for src, dst, in zip(soln, soln[1:])
         ]
         total_steps = sum(map(lambda p: p.steps, route))
@@ -139,29 +160,84 @@ class Area_Map:
 
     return routes
 
-  def _find_routes(self, pos, paths, keys_req, cur_steps, keys=[]):
+  def _closest_key(self, key):
+    lowest_steps = 1e8
+    dst_pos = self.destinations[key]
+    for src_key, pos in self.destinations.items():
+      if src_key == "@" or src_key == key:
+        continue
 
-    if len(keys_req) == 0:
+      if self.paths[pos][dst_pos].steps < lowest_steps:
+        cur_key = src_key
+        lowest_steps = self.paths[pos][dst_pos].steps
+
+    return cur_key
+
+  def _find_routes(self, pos, req_keys, cur_steps, keys=[]):
+
+    if len(req_keys) == 0 and cur_steps <= self.best_steps:
       self.best_steps = cur_steps
       self.solutions.append(("@", *keys))
-      print(f"Best solution {cur_steps} steps; keys: {keys}")
+      print(f"Solution {cur_steps} steps; keys: {keys}")
 
-    for key in keys_req:
+    for key in req_keys:
       dst = self.destinations[key]
-      path = paths[(pos, dst)]
-      # Check key requirements
-      if len(path.keys_req) > 0:
-        if not _issubset(keys, path.keys_req):
-          continue
+      path = self.paths[pos][dst]
 
-      if cur_steps + path.steps >= self.best_steps:
+      if cur_steps + path.steps > self.best_steps:
         continue
-      if len(list(filter(lambda k: k in keys_req, path.keys_enroute))) > 0:
+      if not _issubset(keys, path.keys_req):
         continue
+      # if len(list(filter(lambda k: k in free_keys, path.keys_enroute))) > 0:
+        # continue
 
       self._find_routes(
-          dst, paths, list(filter(lambda k: k != key, keys_req)),
+          dst, list(filter(lambda k: k != key, req_keys)),
           cur_steps + path.steps, [*keys, key])
+
+  def _find_routes_locked(self, pos, free_keys, locked_keys, cur_steps, keys=[]):
+
+    if len(free_keys) == 0:
+      if len(locked_keys) == 0:
+        if cur_steps <= self.best_steps:
+          self.best_steps = cur_steps
+          self.solutions.append(("@", *keys))
+          print(f"Solution {cur_steps} steps; keys: {keys}")
+      elif len(locked_keys) > 0:
+        self._find_routes(pos, locked_keys, cur_steps, keys)
+
+    for key in free_keys:
+      dst = self.destinations[key]
+      path = self.paths[pos][dst]
+
+      if cur_steps + path.steps > self.best_steps:
+        continue
+      # if len(list(filter(lambda k: k in free_keys, path.keys_enroute))) > 0:
+        # continue
+
+      cur_keys = [*keys, key]
+      new_free_keys = list(filter(lambda k: k != key, free_keys))
+      new_locked_keys = locked_keys.copy()
+      c_key = self.closest_keys.get(key)
+      steps = cur_steps + path.steps
+      if c_key is not None and c_key in locked_keys:
+        c_dst = self.destinations[c_key]
+        if _issubset(cur_keys, self.paths[dst][c_dst].keys_req):
+          steps += self.paths[dst][c_dst].steps
+          dst = c_dst
+          cur_keys.append(c_key)
+          new_locked_keys.remove(c_key)
+
+      for u_key in self.unlocked_keys[key]:
+        unlocked_path = self.paths[dst][self.destinations[u_key]]
+        if _issubset(cur_keys, unlocked_path.keys_req) and _issubset(cur_keys, unlocked_path.keys_enroute):
+          self._find_routes_locked(
+              self.destinations[u_key], new_free_keys,
+              list(filter(lambda k: k != u_key, new_locked_keys)),
+              steps + unlocked_path.steps, [*cur_keys, u_key])
+
+      self._find_routes_locked(
+          dst, new_free_keys, new_locked_keys, steps, cur_keys)
 
   def _flood_list(self, pos_list):
     ret = []
